@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-import { env } from "./environment.js";
+const env = require("@src/config/environment");
 
 const dbConnect = async () => {
     try {
