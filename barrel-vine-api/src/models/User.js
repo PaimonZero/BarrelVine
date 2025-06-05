@@ -1,5 +1,6 @@
-const mongoose = require("mongoose"); // Erase if already required
-const bcrypt = require("bcrypt");
+const mongoose = require('mongoose'); // Erase if already required
+const bcrypt = require('bcrypt');
+const crypto = require('crypto');
 
 // Declare the Schema of the Mongo model
 var userSchema = new mongoose.Schema(
@@ -11,11 +12,11 @@ var userSchema = new mongoose.Schema(
         mobile: { type: String, required: true, unique: true },
         role: {
             type: String,
-            enum: ["customer", "staff", "manager"],
-            default: "customer",
+            enum: ['customer', 'staff', 'manager'],
+            default: 'customer',
         },
-        address: [{ type: mongoose.Schema.Types.ObjectId, ref: "Address" }],
-        wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
+        address: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Address' }],
+        wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
         isBlocked: { type: Boolean, default: false },
         refreshToken: { type: String },
         passwordChangedAt: { type: String },
@@ -29,18 +30,26 @@ var userSchema = new mongoose.Schema(
 
 // Trong model thì ko thể sử dụng arrow function vì nó sẽ không có this
 // This function is used to hash the password before saving the user
-userSchema.pre("save", async function (next) {
-    if (!this.isModified("password")) {
+userSchema.pre('save', async function (next) {
+    if (!this.isModified('password')) {
         return next();
     }
     const salt = bcrypt.genSaltSync(10);
     this.password = await bcrypt.hashSync(this.password, salt);
 });
 
-// This function is used to compare the password entered by the user with the hashed password in the database
-userSchema.methods.isCorrectPassword = async function (enteredPassword) {
-    return await bcrypt.compare(enteredPassword, this.password);
+userSchema.methods = {
+    // This function is used to compare the password entered by the user with the hashed password in the database
+    isCorrectPassword: async function (enteredPassword) {
+        return await bcrypt.compare(enteredPassword, this.password);
+    },
+    createPasswordResetToken: function () {
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        this.passwordResetToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+        this.passwordResetExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
+        return resetToken;
+    },
 };
 
 //Export the model
-module.exports = mongoose.model("User", userSchema);
+module.exports = mongoose.model('User', userSchema);

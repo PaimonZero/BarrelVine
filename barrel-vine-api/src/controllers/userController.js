@@ -2,10 +2,14 @@ const User = require('@models/User');
 const asyncHandler = require('express-async-handler');
 const tokenUtils = require('@middlewares/jwt');
 const jwt = require('jsonwebtoken');
+const { mailResetPassword } = require('@src/templates/resetPasswordEmail');
+const env = require('@config/environment');
+const sendMail = require('@utils/sendMail');
+const crypto = require('crypto');
 
 // [POST] register user
 const register = asyncHandler(async (req, res) => {
-    const { email, password, firstName, lastName } = req.body;
+    const { email, password, firstName, lastName, mobile } = req.body;
     if (!email || !password || !firstName || !lastName) {
         return res.status(400).json({
             success: false,
@@ -134,10 +138,56 @@ const logout = asyncHandler(async (req, res) => {
     });
 });
 
+const forgotPassword = asyncHandler(async (req, res, next) => {
+    const { email } = req.query; // Lấy email từ query string
+    if (!email) throw new Error('Email is required!');
+    const user = await User.findOne({ email });
+    if (!user) throw new Error('User not found!');
+    // Create password reset token
+    const resetToken = user.createPasswordResetToken();
+    await user.save();
+
+    const content = {
+        subject: 'Forgot password notification from your Barrel&Vine account',
+        html: mailResetPassword(resetToken),
+        text: `You have requested to reset your password. Please use the following link: ${env.CLIENT_URL}/user/reset-password/${resetToken}`,
+    };
+
+    // Send email
+    const rs = await sendMail(email, content);
+    return res.status(200).json({
+        success: true,
+        mes: 'Reset password email sent successfully!',
+        rs,
+    });
+});
+
+const resetPassword = asyncHandler(async (req, res) => {
+    const { password, token } = req.body;
+    if (!token) throw new Error('Token is required!');
+    if (!password) throw new Error('Password is required!');
+    const passwordResetToken = crypto.createHash('sha256').update(token).digest('hex');
+    const user = await User.findOne({
+        passwordResetToken,
+        passwordResetExpires: { $gt: Date.now() },
+    });
+    if (!user) throw new Error('Invalid or expired reset token!');
+    user.password = password;
+    user.passwordResetToken = undefined;
+    user.passwordResetExpires = undefined;
+    user.passwordChangedAt = Date.now();
+    await user.save();
+    return res.status(200).json({
+        success: user ? true : false,
+        mes: user ? 'Password reset successfully!' : 'Failed to reset password!',
+    });
+});
 module.exports = {
     register,
     login,
     getCurrentUser,
     refreshAccessToken,
     logout,
+    forgotPassword,
+    resetPassword,
 };
