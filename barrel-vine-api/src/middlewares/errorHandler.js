@@ -9,11 +9,11 @@ const errorHandler = (err, req, res, next) => {
     res.status(statusCode);
     res.json({
         success: false,
-        message: err?.message,
-        //stack: process.env.NODE_ENV === "production" ? null : err.stack,
+        message: `${err?.name}: ${err?.message}`,
+        // stack: process.env.NODE_ENV === "production" ? null : err.stack,
     });
     // Log the error to the console for debugging
-    console.error(err?.message);
+    console.error(`${err?.name}: ${err?.message} \n Stack: ${err?.stack}`);
 };
 
 module.exports = {

@@ -1,5 +1,6 @@
 const userRouter = require("@routes/userRoutes");
 const { notFound, errorHandler } = require("@middlewares/errorHandler");
+const tokenUtils = require("@middlewares/jwt");
 
 const initRoutes = (app) => {
     // page register

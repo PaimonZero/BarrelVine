@@ -37,5 +37,10 @@ userSchema.pre("save", async function (next) {
     this.password = await bcrypt.hashSync(this.password, salt);
 });
 
+// This function is used to compare the password entered by the user with the hashed password in the database
+userSchema.methods.isCorrectPassword = async function (enteredPassword) {
+    return await bcrypt.compare(enteredPassword, this.password);
+};
+
 //Export the model
 module.exports = mongoose.model("User", userSchema);
