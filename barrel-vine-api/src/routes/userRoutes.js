@@ -16,6 +16,14 @@ router.post('/logout', tokenUtils.verifyAccessToken, ctrls.logout);
 router.get('/forgot-password', ctrls.forgotPassword);
 // [PUT] reset password
 router.put('/reset-password', ctrls.resetPassword);
+// [GET] get all users (admin only)
+router.get('/', [tokenUtils.verifyAccessToken, tokenUtils.isAdmin], ctrls.getAllUsers);
+// [DeLETE] delete user (admin only)
+router.delete('/', [tokenUtils.verifyAccessToken, tokenUtils.isAdmin], ctrls.deleteUser);
+// [PUT] update user (for all users)
+router.put('/current', tokenUtils.verifyAccessToken, ctrls.updateUser);
+// [PUT] update user by admin (admin only)
+router.put('/:_id', [tokenUtils.verifyAccessToken, tokenUtils.isAdmin], ctrls.updateUserByAdmin);
 
 module.exports = router;
 

@@ -75,12 +75,12 @@ const login = asyncHandler(async (req, res) => {
         sameSite: 'strict',
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
-    // Return user data (excluding password)
-    const { password: _, role, ...userData } = userResponse.toObject();
+    // Return user data (excluding password, role and refreshToken)
+    const { password: _, role, refreshToken: _refresh, ...userData } = userResponse.toObject();
     return res.status(200).json({
         success: true,
         accessToken,
-        response: userData,
+        userData,
     });
 });
 
@@ -89,19 +89,15 @@ const getCurrentUser = asyncHandler(async (req, res) => {
     const { _id } = req.user;
     // Fetch user details from database
     const userDetails = await User.findById(_id).select('-password -refreshToken -role');
-    console.log(userDetails);
-    if (!userDetails) {
-        return res.status(404).json({
-            success: false,
-            mes: 'User not found!',
-        });
-    }
+    // console.log(userDetails);
     return res.status(200).json({
-        success: true,
-        response: userDetails,
+        success: userDetails ? true : false,
+        mes: userDetails ? 'User details fetched successfully!' : 'Failed to fetch user details!',
+        response: userDetails ? userDetails : 'User not found!',
     });
 });
 
+// [POST] refresh access token
 const refreshAccessToken = asyncHandler(async (req, res) => {
     // Lấy refresh token từ cookie
     const cookie = req.cookies;
@@ -119,6 +115,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     });
 });
 
+// [POST] logout user
 const logout = asyncHandler(async (req, res) => {
     const cookie = req.cookies;
     if (!cookie?.refreshToken) throw new Error('No refresh token in cookies!');
@@ -138,6 +135,7 @@ const logout = asyncHandler(async (req, res) => {
     });
 });
 
+// [GET] forgot password
 const forgotPassword = asyncHandler(async (req, res, next) => {
     const { email } = req.query; // Lấy email từ query string
     if (!email) throw new Error('Email is required!');
@@ -162,6 +160,7 @@ const forgotPassword = asyncHandler(async (req, res, next) => {
     });
 });
 
+// [PUT] reset password
 const resetPassword = asyncHandler(async (req, res) => {
     const { password, token } = req.body;
     if (!token) throw new Error('Token is required!');
@@ -175,13 +174,67 @@ const resetPassword = asyncHandler(async (req, res) => {
     user.password = password;
     user.passwordResetToken = undefined;
     user.passwordResetExpires = undefined;
-    user.passwordChangedAt = Date.now();
+    user.passwordChangedAt = Date.now().toString();
     await user.save();
     return res.status(200).json({
         success: user ? true : false,
         mes: user ? 'Password reset successfully!' : 'Failed to reset password!',
     });
 });
+
+// [GET] get all users (for admin)
+const getAllUsers = asyncHandler(async (req, res) => {
+    const users = await User.find().select('-password -refreshToken -role');
+    return res.status(200).json({
+        success: users ? true : false,
+        users,
+    });
+});
+
+// [DELETE] delete user (for admin)
+const deleteUser = asyncHandler(async (req, res) => {
+    const { _id } = req.query; // nằm sau ?
+    if (!_id) throw new Error('User ID is required!');
+    const response = await User.findByIdAndDelete(_id);
+    return res.status(200).json({
+        success: response ? true : false,
+        deleteUser: response ? `User with email ${response.email} deleted` : 'User not found!',
+    });
+});
+
+// [PUT] update user (for all users)
+// [], {} là truthy trong JavaScript → ![] và !{} đều là false => Ko thể dùng ! để kiểm tra rỗng
+const updateUser = asyncHandler(async (req, res) => {
+    const { _id } = req.user; // Lấy ID người dùng từ token đã xác thực
+    if (!_id || Object.keys(req.body).length === 0) {
+        throw new Error('User ID and update data are required!');
+    }
+    const response = await User.findByIdAndUpdate(_id, req.body, {
+        new: true,
+        runValidators: true,
+    }).select('-password -refreshToken -role');
+    return res.status(200).json({
+        success: response ? true : false,
+        updatedUser: response ? response : 'User not found or update failed!',
+    });
+});
+
+// [PUT] update user (for admin)
+const updateUserByAdmin = asyncHandler(async (req, res) => {
+    const { _id } = req.params;
+    if (!_id || Object.keys(req.body).length === 0) {
+        throw new Error('User ID and update data are required!');
+    }
+    const response = await User.findByIdAndUpdate(_id, req.body, {
+        new: true,
+        runValidators: true,
+    }).select('-password -refreshToken -role');
+    return res.status(200).json({
+        success: response ? true : false,
+        updatedUser: response ? response : 'User not found or update failed!',
+    });
+});
+
 module.exports = {
     register,
     login,
@@ -190,4 +243,8 @@ module.exports = {
     logout,
     forgotPassword,
     resetPassword,
+    getAllUsers,
+    deleteUser,
+    updateUser,
+    updateUserByAdmin,
 };

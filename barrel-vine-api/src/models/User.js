@@ -12,10 +12,16 @@ var userSchema = new mongoose.Schema(
         mobile: { type: String, required: true, unique: true },
         role: {
             type: String,
-            enum: ['customer', 'staff', 'manager'],
+            enum: ['customer', 'staff', 'admin'],
             default: 'customer',
         },
         address: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Address' }],
+        cart: [
+            {
+                product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
+                quantity: { type: Number, default: 1 },
+            },
+        ],
         wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Product' }],
         isBlocked: { type: Boolean, default: false },
         refreshToken: { type: String },
