@@ -10,6 +10,7 @@ const env = {
     EMAIL_APP_PASSWORD: process.env.EMAIL_APP_PASSWORD,
     EMAIL_NAME: process.env.EMAIL_NAME,
     CLIENT_URL: process.env.CLIENT_URL,
+    LIMIT_PRODUCT: process.env.LIMIT_PRODUCT,
 };
 
 module.exports = env;

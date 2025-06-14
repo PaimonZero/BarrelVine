@@ -6,6 +6,8 @@ const tokenUtils = require('@middlewares/jwt');
 router.post('/', [tokenUtils.verifyAccessToken, tokenUtils.isAdmin], ctrls.createProduct);
 // [GET] Get all products
 router.get('/', ctrls.getProducts);
+// [PUT] Update/ Create new ratings for a product
+router.put('/', tokenUtils.verifyAccessToken, ctrls.ratings);
 // [GET] Get a product by ID
 router.get('/:pid', ctrls.getProduct);
 // [PUT] Update a product by ID (admin only)

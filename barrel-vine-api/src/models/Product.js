@@ -18,6 +18,7 @@ var productSchema = new mongoose.Schema(
         promo: { type: mongoose.Schema.Types.ObjectId, ref: 'Promo' },
         category: { type: mongoose.Schema.Types.ObjectId, ref: 'Category'},
         images: [{ type: String, required: true }],
+        totalRating: { type: Number, default: 0 },
         ratings: [
             {
                 star: { type: Number, default: 0 },
@@ -27,7 +28,6 @@ var productSchema = new mongoose.Schema(
                 createdAt: { type: Date, default: Date.now },
             },
         ],
-        totalRating: { type: Number, default: 0 },
     },
     {
         timestamps: true,
