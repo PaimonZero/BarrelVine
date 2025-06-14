@@ -39,6 +39,14 @@ const updateCategory = asyncHandler(async (req, res) => {
 
 });
 
+// Test view ejs
+const testView = asyncHandler(async (req, res) => {
+    res.render('index', { title: 'Test EJS View', message: 'Hello, EJS!' });
+});
+
 module.exports = {
     createCategory,
+    getCategories,
+    updateCategory,
+    testView
 };
