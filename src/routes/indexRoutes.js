@@ -3,11 +3,14 @@ const productRouter = require('@routes/productRoutes');
 const categoryRouter = require('@routes/categoryRoutes');
 const couponRouter = require('@routes/couponRoutes');
 const invoiceRouter = require('@routes/invoiceRoutes');
+const adminRouter = require('@routes/adminRoutes');
 
 const customerHomePageRouter = require('@routes/customer/homePageRoutes');
 const customerAccountSettingRouter = require('@routes/customer/accountSettingRoutes');
 const customerDashboardRouter = require('@routes/customer/customerDashboardRoutes');
 const customerProductDetailRouter = require('@routes/customer/productDetailRoutes');
+const customerCategoryRouter = require('@routes/customer/categoryRoutes');
+const customerShoppingCartRouter = require('@routes/customer/shoppingCartRoutes');
 
 const authRouter = require('@routes/authRoutes');
 const { notFound, errorHandler } = require('@middlewares/errorHandler');
@@ -24,6 +27,8 @@ const initRoutes = (app) => {
     app.use('/api/coupon', couponRouter);
     // page invoice
     app.use('/api/invoice', invoiceRouter);
+    // page admin
+    app.use('/admin', [tokenUtils.verifyAccessToken, tokenUtils.isAdmin], adminRouter);
     // page auth
     app.use('/auth', authRouter);
 
@@ -32,6 +37,8 @@ const initRoutes = (app) => {
     app.use('/product', customerProductDetailRouter);
     app.use('/customer-dashboard', customerDashboardRouter);
     app.use('/account-setting', customerAccountSettingRouter);
+    app.use('/category', customerCategoryRouter);
+    app.use('/shopping-cart', customerShoppingCartRouter);
 
     // handle 404 - This should be the last route
     app.use(notFound);
