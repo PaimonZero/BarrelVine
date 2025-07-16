@@ -18,6 +18,16 @@ router.get('/register', ctrls.displayRegister);
 // [POST] auth/register Register user
 router.post('/register', ctrls.register);
 
+// [GET] auth/forgot-password Display forgot password page
+router.get('/forgot-password', ctrls.displayForgotPassword);
+// [POST] auth/forgot-password Send reset password email
+router.post('/forgot-password', ctrls.forgotPassword);
+
+// [GET] auth/reset-password/:token Display reset password page
+router.get('/reset-password/:token', ctrls.displayResetPassword);
+// [POST] auth/reset-password/:token Reset user password
+router.post('/reset-password/:token', ctrls.resetPassword);
+
 // [GET] auth/google Redirect to Google for authentication
 router.get('/google', 
     passport.authenticate('google', { scope: ['profile', 'email'] }),
