@@ -5,7 +5,9 @@ const couponRouter = require('@routes/couponRoutes');
 const invoiceRouter = require('@routes/invoiceRoutes');
 
 const customerHomePageRouter = require('@routes/customer/homePageRoutes');
+const customerAccountSettingRouter = require('@routes/customer/accountSettingRoutes');
 const customerDashboardRouter = require('@routes/customer/customerDashboardRoutes');
+const customerProductDetailRouter = require('@routes/customer/productDetailRoutes');
 
 const authRouter = require('@routes/authRoutes');
 const { notFound, errorHandler } = require('@middlewares/errorHandler');
@@ -27,7 +29,9 @@ const initRoutes = (app) => {
 
     // page UI
     app.use('/', customerHomePageRouter);
+    app.use('/product', customerProductDetailRouter);
     app.use('/customer-dashboard', customerDashboardRouter);
+    app.use('/account-setting', customerAccountSettingRouter);
 
     // handle 404 - This should be the last route
     app.use(notFound);
