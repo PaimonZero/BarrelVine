@@ -3,6 +3,7 @@ const productRouter = require('@routes/productRoutes');
 const categoryRouter = require('@routes/categoryRoutes');
 const couponRouter = require('@routes/couponRoutes');
 const invoiceRouter = require('@routes/invoiceRoutes');
+const adminRouter = require('@routes/adminRoutes');
 
 const customerHomePageRouter = require('@routes/customer/homePageRoutes');
 const customerAccountSettingRouter = require('@routes/customer/accountSettingRoutes');
@@ -28,6 +29,8 @@ const initRoutes = (app) => {
     app.use('/api/coupon', couponRouter);
     // page invoice
     app.use('/api/invoice', invoiceRouter);
+    // page admin
+    app.use('/admin', [tokenUtils.verifyAccessToken, tokenUtils.isAdmin], adminRouter);
     // page auth
     app.use('/auth', authRouter);
 
