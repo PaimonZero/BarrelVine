@@ -1,4 +1,6 @@
 const router = require('express').Router();
+const tokenUtils = require('@middlewares/jwt');
+const uploadCloud = require('@config/cloudinary.config');
 const ctrlsUser = require('@controllers/admin/userAdmin');
 const ctrlsDashboard = require('@controllers/admin/dashboardAdmin');
 const ctrlsProduct = require('@controllers/admin/productAdmin');
@@ -30,6 +32,14 @@ router.post('/user-update', ctrlsUser.updateUserInAdminPage);
 // ______ Product Management Routes ______
 // Route to view products
 router.get('/products', ctrlsProduct.renderProductList);
+// Route to view create product
+router.get('/product-create', ctrlsProduct.renderCreateProductPage);
+// Route to create product
+router.post('/product-create', uploadCloud.array('images', 10), ctrlsProduct.createProduct);
+// Route to view edit product
+router.get('/product-update/:pid', ctrlsProduct.renderUpdateProductPage);
+// Route to update product
+router.post('/product-update/:pid', uploadCloud.array('images', 10), ctrlsProduct.updateProduct);
 // Route to delete product
 router.post('/product-delete/:pid', ctrlsProduct.deleteProduct);
 // Route to delete product image
