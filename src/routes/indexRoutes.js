@@ -12,6 +12,7 @@ const customerProductDetailRouter = require('@routes/customer/productDetailRoute
 const authRouter = require('@routes/authRoutes');
 const { notFound, errorHandler } = require('@middlewares/errorHandler');
 const tokenUtils = require('@middlewares/jwt');
+const customerContactRouter = require('@routes/customer/contactRoutes');
 
 const initRoutes = (app) => {
     // page user
@@ -32,6 +33,8 @@ const initRoutes = (app) => {
     app.use('/product', customerProductDetailRouter);
     app.use('/customer-dashboard', customerDashboardRouter);
     app.use('/account-setting', customerAccountSettingRouter);
+    app.use('/contact', customerContactRouter);
+
 
     // handle 404 - This should be the last route
     app.use(notFound);
