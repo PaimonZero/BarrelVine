@@ -1,0 +1,201 @@
+<link rel="stylesheet" href="/css/customerCss/orderHistory.css">
+
+<input type="hidden" id="notifyOrder" name="notifyOrder" value="${notifyOrderSuccess}">
+<div class="mobile-header">
+  <div class="d-flex justify-content-between align-items-center">
+    <button class="menu-toggle btn btn-outline-secondary">
+      <i class="fas fa-bars"></i>Menu
+    </button>
+  </div>
+</div>
+
+<div class="container">
+  <div class="row mt-4 mb-4">
+    <div class="col-lg-3 mt-2">
+      <div class="sidebar d-flex flex-column flex-shrink-0 bg-body-tertiary" id="sidebar">
+        <span class="fs-4 p-3" style="font-weight: 500;">Menu</span>
+        <ul class="nav nav-pills flex-column mb-auto">
+          <li class="nav-item">
+            <form id="infoForm1" action="/customer-dashboard" method="GET">
+              <a class="nav-link" aria-current="page" onclick="document.getElementById('infoForm1').submit();" style="cursor: pointer;">
+                <i class="fas fa-th-large me-2"></i>
+                Bảng điều khiển
+              </a>
+            </form>
+          </li>
+          <li>
+            <form id="infoForm2" action="/order-history" method="GET">
+              <a class="nav-link active" onclick="document.getElementById('infoForm2').submit();" style="cursor: pointer;">
+                <i class="fas fa-sync-alt me-2"></i>
+                Lịch sử đơn hàng
+              </a>
+            </form>
+          </li>
+          <li>
+            <form id="infoForm4" action="/shopping-cart" method="GET">
+              <a class="nav-link" onclick="document.getElementById('infoForm4').submit();" style="cursor: pointer;">
+                <i class="bi bi-bag me-2"></i>
+                Giỏ hàng
+              </a>
+            </form>
+          </li>
+          <li>
+            <form id="infoForm5" action="/account-setting" method="GET">
+              <a class="nav-link" onclick="document.getElementById('infoForm5').submit();" style="cursor: pointer;">
+                <i class="bi bi-gear me-2"></i>
+                Cài đặt
+              </a>
+            </form>
+          </li>
+          <li>
+            <form id="infoForm6" action="/auth/logout" method="POST">
+              <a class="nav-link" onclick="document.getElementById('infoForm6').submit();" style="cursor: pointer;">
+                <i class="fas fa-sign-out-alt me-2"></i>
+                Đăng xuất
+              </a>
+            </form>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="col-lg-9 mt-2 mb-3">
+      <!-- Order History -->
+      <div class="card shadow-sm content">
+        <div class="card-body">
+          <h5 class="card-title fw-bold mb-3">Order History</h5>
+          <div class="table-responsive">
+            <table class="table table-borderless table-hover">
+              <thead class="table-active">
+                <tr>
+                  <th>Image</th>
+                  <th>Date</th>
+                  <th>Total</th>
+                  <th>Status</th>
+                  <th></th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="invoices-list">
+              </tbody>
+
+            </table>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let invoices = <%- JSON.stringify(invoices) %>;
+</script>
+<script>
+  //hiện thanh sidebar mobile
+  document.querySelector('.menu-toggle').addEventListener('click', function() {
+    document.getElementById('sidebar').classList.toggle('show');
+  });
+
+  async function cancelInvoice(invoiceId) {
+    if (!confirm('Bạn có chắc muốn xoá sản phẩm này khỏi giỏ hàng?')) return;
+
+    try {
+      const res = await fetch(`/api/invoice/cancel-invoice/${invoiceId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          deliveryStatus: 'cancelled',
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.message || 'Hiện tại bạn chưa thể hủy hóa đơn này. Vui lòng chờ một lát nữa nhé!');
+      }
+
+      // ✅ Thành công
+      alert('Đã xoá sản phẩm khỏi giỏ hàng thành công!');
+      invoices = invoices.map(item => item._id === data.invoice._id ? data.invoice : item);
+      renderinvoicesList();
+    } catch (err) {
+      console.error('❌ Lỗi xoá sản phẩm:', err);
+      alert(err.message || 'Xảy ra lỗi khi xoá', 'danger');
+    }
+  }
+
+  function renderinvoicesList() {
+    const invoicesList = document.getElementById('invoices-list');
+    invoicesList.innerHTML = '';
+
+    if (!invoices || invoices.length === 0) {
+      invoicesList.innerHTML = `
+      <tr>
+        <td colspan="6" class="text-center text-danger fw-bold">Lịch sử giỏ hàng đang trống.</td>
+      </tr>
+    `;
+    } else {
+      invoices.forEach(invoice => {
+        const imgSrc = invoice.products?.[0]?.productId?.images?.[0] || '';
+        const imgAlt = invoice.products?.[0]?.productId?.title || 'product-img';
+
+        const createdAt = new Date(invoice.createdAt).toLocaleDateString('vi-VN', {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          hour: 'numeric',
+          minute: 'numeric'
+        });
+
+        const totalAmount = invoice.totalAmount.toLocaleString('vi-VN');
+        const productCount = invoice.products?.length || 0;
+
+        let badgeClass = '';
+        switch (invoice.deliveryStatus) {
+          case 'pending':
+            badgeClass = 'bg-warning text-white';
+            break;
+          case 'completed':
+            badgeClass = 'bg-info text-white';
+            break;
+          case 'shipped':
+            badgeClass = 'bg-success';
+            break;
+          case 'cancelled':
+            badgeClass = 'bg-danger';
+            break;
+        }
+
+        const row = document.createElement("tr");
+        row.innerHTML = `
+        <td>
+          <img src="${imgSrc}" alt="${imgAlt}" title="${imgAlt}" class="rounded me-3" height="64" style="object-fit: contain;" />
+        </td>
+        <td class="align-middle">${createdAt}</td>
+        <td class="align-middle">${totalAmount} ₫ (${productCount} products)</td>
+        <td class="align-middle">
+          <span class="badge p-2 ${badgeClass}">${invoice.deliveryStatus}</span>
+        </td>
+        <td class="align-middle">
+          <form action="/order-detail" method="GET">
+            <input type="hidden" name="invoiceId" value="${invoice._id}">
+            <button type="submit" class="btn p-0 px-2 btn-danger">Xem chi tiết</button>
+          </form>
+        </td>
+      ` + (invoice.deliveryStatus !== 'cancelled' && invoice.deliveryStatus !== 'shipped' && invoice.deliveryStatus !== 'completed' ?
+          `<td class="align-middle">
+          <a id="cancel-invoice" class="action-icon" onclick="cancelInvoice('${invoice._id}')" style="cursor: pointer;">
+            <i class="far fa-trash-alt me-2" aria-hidden="true"></i>
+          </a>
+        </td>` : '');
+        invoicesList.appendChild(row);
+      });
+    }
+  }
+
+  renderinvoicesList()
+</script>
