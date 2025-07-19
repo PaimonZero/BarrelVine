@@ -1,7 +1,11 @@
 const router = require('express').Router();
+const tokenUtils = require('@middlewares/jwt');
+const uploadCloud = require('@config/cloudinary.config');
 const ctrlsUser = require('@controllers/admin/userAdmin');
 const ctrlsDashboard = require('@controllers/admin/dashboardAdmin');
 const ctrlsCategory = require('@controllers/admin/categoryAdmin');
+const ctrlsProduct = require('@controllers/admin/productAdmin');
+const ctrlsCoupon = require('@controllers/admin/couponAdmin');
 
 // test controller
 const Product = require('@models/Product');
@@ -35,5 +39,31 @@ router.post('/category-create', ctrlsCategory.createCategory);
 router.post('/category-update/:cid', ctrlsCategory.updateCategory);
 // Route to delete category
 router.post('/category-delete/:cid', ctrlsCategory.deleteCategory);
+
+// ______ Product Management Routes ______
+// Route to view products
+router.get('/products', ctrlsProduct.renderProductList);
+// Route to view create product
+router.get('/product-create', ctrlsProduct.renderCreateProductPage);
+// Route to create product
+router.post('/product-create', uploadCloud.array('images', 10), ctrlsProduct.createProduct);
+// Route to view edit product
+router.get('/product-update/:pid', ctrlsProduct.renderUpdateProductPage);
+// Route to update product
+router.post('/product-update/:pid', uploadCloud.array('images', 10), ctrlsProduct.updateProduct);
+// Route to delete product
+router.post('/product-delete/:pid', ctrlsProduct.deleteProduct);
+// Route to delete product image
+router.delete('/product-delete-image/:pid', ctrlsProduct.deleteProductImage);
+
+// ______ Coupon Management Routes ______
+// Route to view coupons
+router.get('/coupons', ctrlsCoupon.renderCouponsPage);
+// Route to create coupon
+router.post('/coupon-create', ctrlsCoupon.createCoupon);
+// Route to update coupon
+router.post('/coupon-update/:cid', ctrlsCoupon.updateCoupon);
+// Route to delete coupon
+router.post('/coupon-delete/:cid', ctrlsCoupon.deleteCoupon);
 
 module.exports = router;
