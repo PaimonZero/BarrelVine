@@ -16,7 +16,6 @@ const customerOrderHistoryRouter = require('@routes/customer/orderHistoryRoutes'
 const customerContactRouter = require('@routes/customer/contactRoutes');
 const customerOrderDetailRouter = require('@routes/customer/orderDetailRoutes');
 
-
 const authRouter = require('@routes/authRoutes');
 const { notFound, errorHandler } = require('@middlewares/errorHandler');
 const tokenUtils = require('@middlewares/jwt');
