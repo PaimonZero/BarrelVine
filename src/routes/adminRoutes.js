@@ -4,6 +4,7 @@ const uploadCloud = require('@config/cloudinary.config');
 const ctrlsUser = require('@controllers/admin/userAdmin');
 const ctrlsDashboard = require('@controllers/admin/dashboardAdmin');
 const ctrlsProduct = require('@controllers/admin/productAdmin');
+const ctrlsCoupon = require('@controllers/admin/couponAdmin');
 
 // test controller
 const Product = require('@models/Product');
@@ -44,5 +45,16 @@ router.post('/product-update/:pid', uploadCloud.array('images', 10), ctrlsProduc
 router.post('/product-delete/:pid', ctrlsProduct.deleteProduct);
 // Route to delete product image
 router.delete('/product-delete-image/:pid', ctrlsProduct.deleteProductImage);
+
+
+// ______ Coupon Management Routes ______
+// Route to view coupons
+router.get('/coupons', ctrlsCoupon.renderCouponsPage);
+// Route to create coupon
+router.post('/coupon-create', ctrlsCoupon.createCoupon);
+// Route to update coupon
+router.post('/coupon-update/:cid', ctrlsCoupon.updateCoupon);
+// Route to delete coupon
+router.post('/coupon-delete/:cid', ctrlsCoupon.deleteCoupon);
 
 module.exports = router;
