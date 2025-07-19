@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const ctrlsUser = require('@controllers/admin/userAdmin');
 const ctrlsDashboard = require('@controllers/admin/dashboardAdmin');
+const ctrlsProduct = require('@controllers/admin/productAdmin');
 
 // test controller
 const Product = require('@models/Product');
@@ -25,5 +26,13 @@ router.get('/users', ctrlsUser.renderUsersPage);
 router.post('/user-create', ctrlsUser.createUser);
 // Route to update user
 router.post('/user-update', ctrlsUser.updateUserInAdminPage);
+
+// ______ Product Management Routes ______
+// Route to view products
+router.get('/products', ctrlsProduct.renderProductList);
+// Route to delete product
+router.post('/product-delete/:pid', ctrlsProduct.deleteProduct);
+// Route to delete product image
+router.delete('/product-delete-image/:pid', ctrlsProduct.deleteProductImage);
 
 module.exports = router;
