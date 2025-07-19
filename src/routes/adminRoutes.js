@@ -3,6 +3,7 @@ const tokenUtils = require('@middlewares/jwt');
 const uploadCloud = require('@config/cloudinary.config');
 const ctrlsUser = require('@controllers/admin/userAdmin');
 const ctrlsDashboard = require('@controllers/admin/dashboardAdmin');
+const ctrlsCategory = require('@controllers/admin/categoryAdmin');
 const ctrlsProduct = require('@controllers/admin/productAdmin');
 const ctrlsCoupon = require('@controllers/admin/couponAdmin');
 
@@ -29,6 +30,15 @@ router.get('/users', ctrlsUser.renderUsersPage);
 router.post('/user-create', ctrlsUser.createUser);
 // Route to update user
 router.post('/user-update', ctrlsUser.updateUserInAdminPage);
+// ______ Category Management Routes ______
+// Route to view categories
+router.get('/categories', ctrlsCategory.renderCategoriesPage);
+// Route to create category
+router.post('/category-create', ctrlsCategory.createCategory);
+// Route to update category
+router.post('/category-update/:cid', ctrlsCategory.updateCategory);
+// Route to delete category
+router.post('/category-delete/:cid', ctrlsCategory.deleteCategory);
 
 // ______ Product Management Routes ______
 // Route to view products
@@ -45,7 +55,6 @@ router.post('/product-update/:pid', uploadCloud.array('images', 10), ctrlsProduc
 router.post('/product-delete/:pid', ctrlsProduct.deleteProduct);
 // Route to delete product image
 router.delete('/product-delete-image/:pid', ctrlsProduct.deleteProductImage);
-
 
 // ______ Coupon Management Routes ______
 // Route to view coupons
