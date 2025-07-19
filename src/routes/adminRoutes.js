@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const ctrlsUser = require('@controllers/admin/userAdmin');
 const ctrlsDashboard = require('@controllers/admin/dashboardAdmin');
+const ctrlsCategory = require('@controllers/admin/categoryAdmin');
 
 // test controller
 const Product = require('@models/Product');
@@ -25,5 +26,14 @@ router.get('/users', ctrlsUser.renderUsersPage);
 router.post('/user-create', ctrlsUser.createUser);
 // Route to update user
 router.post('/user-update', ctrlsUser.updateUserInAdminPage);
+// ______ Category Management Routes ______
+// Route to view categories
+router.get('/categories', ctrlsCategory.renderCategoriesPage);
+// Route to create category
+router.post('/category-create', ctrlsCategory.createCategory);
+// Route to update category
+router.post('/category-update/:cid', ctrlsCategory.updateCategory);
+// Route to delete category
+router.post('/category-delete/:cid', ctrlsCategory.deleteCategory);
 
 module.exports = router;
