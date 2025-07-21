@@ -8,26 +8,26 @@
 <!-- Form Register -->
 <div class="container d-flex justify-content-center align-items-center min-vh-100" style="margin-top: -3rem;">
   <div class="card shadow p-4" style="max-width: 500px; width: 100%; background-color: rgba(255, 255, 255, 0.9);">
-    <h3 class="text-center mb-3">Sign up</h3>
+    <h3 class="text-center mb-3">Đăng ký</h3>
 
     <form action="/auth/register" method="POST">
       <div class="mb-2">
         <label for="firstName" class="form-label">
-          <i class="fas fa-user text-muted me-1"></i> First Name
+          <i class="fas fa-user text-muted me-1"></i> Tên
         </label>
         <input type="text" name="firstName" id="firstName" class="form-control" autocomplete="given-name" required />
       </div>
 
       <div class="mb-2">
         <label for="lastName" class="form-label">
-          <i class="fas fa-user text-muted me-1"></i> Last Name
+          <i class="fas fa-user text-muted me-1"></i> Họ và tên đệm
         </label>
         <input type="text" name="lastName" id="lastName" class="form-control" autocomplete="family-name" required />
       </div>
 
       <div class="mb-2">
         <label for="mobile" class="form-label">
-          <i class="fas fa-phone text-muted me-1"></i> Mobile
+          <i class="fas fa-phone text-muted me-1"></i> Số điện thoại
         </label>
         <input type="text" name="mobile" id="mobile" class="form-control" autocomplete="tel" />
       </div>
@@ -41,19 +41,19 @@
 
       <div class="mb-3">
         <label for="password" class="form-label">
-          <i class="fas fa-lock text-muted me-1"></i> Password
+          <i class="fas fa-lock text-muted me-1"></i> Mật khẩu
         </label>
-        <input type="password" name="password" id="password" class="form-control" placeholder="Create a password" autocomplete="new-password" required />
+        <input type="password" name="password" id="password" class="form-control" placeholder="Tạo mật khẩu" autocomplete="new-password" required />
       </div>
 
       <div class="d-grid mb-2">
-        <button type="submit" class="btn btn-primary">Create Account</button>
+        <button type="submit" class="btn btn-primary">Tạo tài khoản</button>
       </div>
 
       <!-- Link đã có tài khoản -->
       <div class="text-center">
-        <span>Already have an account?</span>
-        <a href="/auth/login" class="text-decoration-none">Sign in</a>
+        <span>Đã có tài khoản?</span>
+        <a href="/auth/login" class="text-decoration-none">Đăng nhập</a>
       </div>
     </form>
   </div>

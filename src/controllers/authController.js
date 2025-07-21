@@ -34,16 +34,44 @@ const displayRegister = asyncHandler(async (req, res) => {
 const register = asyncHandler(async (req, res) => {
     const { email, password, firstName, lastName, mobile } = req.body;
 
-    // Kiểm tra thiếu input
+    // Validate input
+    const errors = [];
     if (!email || !password || !firstName || !lastName) {
+        errors.push('Vui lòng nhập đầy đủ email, mật khẩu, họ tên!');
+    }
+    // Email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (email && !emailRegex.test(email)) {
+        errors.push('Email không đúng định dạng!');
+    }
+    // Password length
+    if (password && password.length < 6) {
+        errors.push('Mật khẩu phải từ 6 ký tự trở lên!');
+    }
+    // Mobile format (chỉ số, tối thiểu 9 số)
+    const mobileRegex = /^\d{9,}$/;
+    if (mobile && !mobileRegex.test(mobile)) {
+        errors.push('Số điện thoại không hợp lệ!');
+    }
+
+    // firstName và lastName chỉ chứa chữ cái, không chứa số/ký tự đặc biệt, tối thiểu 2 ký tự
+    const nameRegex = /^[a-zA-ZÀ-ỹ\s]{2,}$/u;
+    if (firstName && !nameRegex.test(firstName)) {
+        errors.push('Tên phải chỉ chứa chữ cái và tối thiểu 2 ký tự!');
+    }
+    if (lastName && !nameRegex.test(lastName)) {
+        errors.push('Họ phải chỉ chứa chữ cái và tối thiểu 2 ký tự!');
+    }
+
+    if (errors.length > 0) {
+        const message = errors.join('\n');
         return res.render('register', {
             title: 'Register Page',
             notification: {
-                message:
-                    'Hình như bạn đang nhập thiếu thông tin. Vui lòng kiểm tra: email, mật khẩu, họ tên cũng như số điện thoại nhé!',
+                message: message,
                 type: 'danger',
             },
-            formData: { email, firstName, lastName, mobile }, // giữ lại input
+            formData: { email, firstName, lastName, mobile },
             account: null,
         });
     }
@@ -75,8 +103,7 @@ const register = asyncHandler(async (req, res) => {
         return res.render('register', {
             title: 'Register Page',
             notification: {
-                message:
-                    'Xin lỗi vì sự bất tiện này! Bạn hãy thử đăng ký tài khoản lại sau ít phút nhé!',
+                message: 'Xin lỗi vì sự bất tiện này! Bạn hãy thử đăng ký tài khoản lại sau ít phút nhé!',
                 type: 'danger',
             },
             formData: { email, firstName, lastName, mobile },
@@ -142,6 +169,18 @@ const login = asyncHandler(async (req, res) => {
         });
     }
 
+    // Thêm kiểm tra isBlocked
+    if (userResponse.isBlocked) {
+        return res.render('login', {
+            title: 'Login Page',
+            notification: {
+                message: 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên!',
+                type: 'danger',
+            },
+            account: null,
+        });
+    }
+
     // 3. Kiểm tra mật khẩu
     const isMatch = await userResponse.isCorrectPassword(password);
     if (!isMatch) {
@@ -152,37 +191,43 @@ const login = asyncHandler(async (req, res) => {
         });
     }
 
-    // 4. Tạo token
-    const accessToken = tokenUtils.generateAccessToken(
+    // 4. Tạo token với đầy đủ thông tin user
+    const accessToken = await tokenUtils.generateAccessToken(
         userResponse._id,
         userResponse.role,
         userResponse.firstName,
-        userResponse.avatar
+        userResponse.avatar,
+        userResponse.lastName,      // Thêm nếu cần
+        userResponse.mobile         // Thêm nếu cần
     );
-    const refreshToken = tokenUtils.generateRefreshToken(userResponse._id);
+    const refreshToken = await tokenUtils.generateRefreshToken(userResponse._id);
 
     // 5. Lưu refresh token vào DB
     await User.findByIdAndUpdate(userResponse._id, { refreshToken }, { new: true });
 
-    // 6. Gửi cookie
+    // 6. Gửi cookie với SameSite: 'lax'
     res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
-        sameSite: 'strict',
+        sameSite: 'lax',
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 ngày
+        secure: false,
+        path: '/',
     });
     res.cookie('accessToken', accessToken, {
         httpOnly: true,
-        sameSite: 'strict',
+        sameSite: 'lax',
         maxAge: 1 * 60 * 60 * 1000, // 1 giờ
+        secure: false,
+        path: '/',
     });
 
     // 7. Trả về giao diện thành công
     req.session.notification = {
-        message:
-            'Chào mừng bạn đến với Barrel&Vine! Hãy khám phá thế giới rượu vang cùng mình nhé!',
+        message: 'Chào mừng bạn đến với Barrel&Vine! Hãy khám phá thế giới rượu vang cùng mình nhé!',
         type: 'success',
     };
 
+    // Trả về giao diện homepage
     return res.redirect('/');
 });
 
@@ -473,28 +518,46 @@ const googleCallback = asyncHandler(async (req, res) => {
         return res.redirect('/auth/login');
     }
 
+    // Kiểm tra block
+    const userDb = await User.findById(req.user._id);
+    if (!userDb || userDb.isBlocked) {
+        req.session.notification = {
+            message: 'Tài khoản của bạn đã bị khóa. Vui lòng liên hệ quản trị viên!',
+            type: 'danger',
+        };
+        return res.render('login', {
+            title: 'Login Page',
+            notification: req.session.notification,
+            account: null,
+        });
+    }
+
     // 1. Tạo token
-    const accessToken = tokenUtils.generateAccessToken(
-        req.user._id,
-        req.user.role,
-        req.user.firstName,
-        req.user.avatar
+    const accessToken = await tokenUtils.generateAccessToken(
+        userDb._id,
+        userDb.role,
+        userDb.firstName,
+        userDb.avatar
     );
-    const refreshToken = tokenUtils.generateRefreshToken(req.user._id);
+    const refreshToken = await tokenUtils.generateRefreshToken(userDb._id);
 
     // 2. Cập nhật refreshToken vào DB
-    await User.findByIdAndUpdate(req.user._id, { refreshToken }, { new: true });
+    await User.findByIdAndUpdate(userDb._id, { refreshToken }, { new: true });
 
     // 3. Gửi cookie
     res.cookie('refreshToken', refreshToken, {
         httpOnly: true,
-        sameSite: 'strict',
+        sameSite: 'lax', //cho phép cookie gửi trong cùng miền
         maxAge: 7 * 24 * 60 * 60 * 1000, // 7 ngày
+        secure: false, // Đúng cho localhost hoặc HTTP
+        path: '/', // Đảm bảo cookie gửi cho mọi route
     });
     res.cookie('accessToken', accessToken, {
         httpOnly: true,
-        sameSite: 'strict',
+        sameSite: 'lax', //cho phép cookie gửi trong cùng miền
         maxAge: 1 * 60 * 60 * 1000, // 1 giờ
+        secure: false, // Đúng cho localhost hoặc HTTP
+        path: '/', // Đảm bảo cookie gửi cho mọi route
     });
 
     // 4. Chuyển hướng về trang chính hoặc dashboard
@@ -504,6 +567,7 @@ const googleCallback = asyncHandler(async (req, res) => {
         type: 'success',
     };
 
+    // Trả về giao diện homepage
     return res.redirect('/');
 });
 

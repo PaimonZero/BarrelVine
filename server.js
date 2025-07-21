@@ -18,7 +18,10 @@ const app = express();
 const port = env.PORT;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+    origin: 'http://localhost:5000', // hoặc domain frontend
+    credentials: true
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());

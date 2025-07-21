@@ -3,7 +3,7 @@ const env = require('@config/environment');
 const asyncHandler = require('express-async-handler');
 
 const generateAccessToken = (_id, role, firstName, avatar) => {
-    console.log('Generating access token for user:', { _id, role, firstName, avatar });
+    // console.log('Generating access token for user:', { _id, role, firstName, avatar });
     return jwt.sign({ _id, role, firstName, avatar }, env.JWT_SECRET, {
         expiresIn: '1h', // Token will expire in 60 minutes
     });
@@ -15,24 +15,51 @@ const generateRefreshToken = (_id) => {
     });
 };
 
+// const verifyLogedin = asyncHandler(async (req, res, next) => {
+//     let token = null;
+//     if (req?.headers?.authorization?.startsWith('Bearer')) {
+//         token = req.headers.authorization.split(' ')[1];
+//     }
+
+//     // Nếu không có, thử lấy từ cookie
+//     if (!token && req.cookies?.accessToken) {
+//         token = req.cookies.accessToken;
+//     }
+
+//     jwt.verify(token, env.JWT_SECRET, (err, decoded) => {
+//         if (err) {
+//             return next();
+//         }
+//         req.user = decoded; // Attach user info to request object
+
+//         next(); // Proceed to the next middleware or route handler
+//     });
+// });
+
 const verifyLogedin = asyncHandler(async (req, res, next) => {
     let token = null;
     if (req?.headers?.authorization?.startsWith('Bearer')) {
         token = req.headers.authorization.split(' ')[1];
     }
-
-    // Nếu không có, thử lấy từ cookie
     if (!token && req.cookies?.accessToken) {
         token = req.cookies.accessToken;
     }
 
+    console.log('Verifying login with token:', token);
+
+    if (!token) {
+        req.user = null; // Không có token thì xóa thông tin user
+        return next();
+    }
+
     jwt.verify(token, env.JWT_SECRET, (err, decoded) => {
         if (err) {
+            req.user = null; // Token sai thì xóa thông tin user
+            console.log('JWT verify error:', err); // Thêm dòng này để xem lỗi
             return next();
         }
-        req.user = decoded; // Attach user info to request object
-
-        next(); // Proceed to the next middleware or route handler
+        req.user = decoded; // Token đúng thì gán thông tin user
+        next();
     });
 });
 

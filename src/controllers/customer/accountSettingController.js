@@ -17,7 +17,7 @@ const getAccountSettingPage = asyncHandler(async (req, res) => {
 
     res.render('customer/account-setting', {
         title: 'Account Setting',
-        account: req.user ? { role: req.user.role } : null,
+        account: req.user || null,
         notification: notification || null,
         userDetails,
     });
@@ -32,9 +32,7 @@ const updateAccountSettings = asyncHandler(async (req, res) => {
     const { _id } = req.user;
     const { firstName, lastName, email, mobile, address } = req.body;
 
-    // Bạn có thể thêm validation chi tiết hơn ở đây
     if (!firstName || !lastName || !mobile) {
-        // Nếu có lỗi, render lại trang với thông báo
         const userDetails = await User.findById(_id).select('-password -refreshToken -role');
         userDetails.fullName = userDetails.lastName + ' ' + userDetails.firstName;
 
@@ -59,9 +57,39 @@ const updateAccountSettings = asyncHandler(async (req, res) => {
         updateFields.avatar = req.file.path;
     }
 
-    await User.findByIdAndUpdate(_id, updateFields, { new: true, runValidators: true });
+    // Cập nhật user trong DB
+    const updatedUser = await User.findByIdAndUpdate(_id, updateFields, { new: true, runValidators: true });
 
-    // Redirect lại trang cài đặt tài khoản sau khi cập nhật thành công
+    // Tạo lại accessToken mới với thông tin vừa cập nhật
+    const accessToken = await require('@middlewares/jwt').generateAccessToken(
+        updatedUser._id,
+        updatedUser.role,
+        updatedUser.firstName,
+        updatedUser.avatar,
+        updatedUser.lastName,
+        updatedUser.mobile
+    );
+
+    // Set lại cookie accessToken
+    res.cookie('accessToken', accessToken, {
+        httpOnly: true,
+        sameSite: 'lax',
+        maxAge: 1 * 60 * 60 * 1000,
+        secure: false,
+        path: '/',
+    });
+
+    // Làm mới lại req.user cho request hiện tại
+    req.user = {
+        _id: updatedUser._id,
+        role: updatedUser.role,
+        firstName: updatedUser.firstName,
+        avatar: updatedUser.avatar,
+        lastName: updatedUser.lastName,
+        mobile: updatedUser.mobile,
+        email: updatedUser.email,
+    };
+
     req.session.notification = {
         message: 'Bạn đã cập nhật tài khoản thành công!',
         type: 'success',

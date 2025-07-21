@@ -37,7 +37,9 @@ const initRoutes = (app) => {
     app.use('/auth', authRouter);
 
     // page UI
-    app.use('/', customerHomePageRouter);
+    app.use(tokenUtils.verifyLogedin);
+
+    app.use('/',tokenUtils.verifyLogedin, customerHomePageRouter);
     app.use('/product', customerProductDetailRouter);
     app.use('/customer-dashboard', customerDashboardRouter);
     app.use('/account-setting', customerAccountSettingRouter);

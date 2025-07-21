@@ -6,7 +6,7 @@
 
 <div class="container d-flex justify-content-center align-items-center min-vh-100" style="margin-top: -6rem;">
   <div class="card shadow p-4" style="max-width: 420px; width: 100%; background-color: rgba(255, 255, 255, 0.9);">
-    <h3 class="text-center mb-4">Sign in</h3>
+    <h3 class="text-center mb-4">Đăng nhập</h3>
 
     <!-- Login Form -->
     <form action="/auth/login" method="POST">
@@ -20,18 +20,18 @@
 
       <div class="mb-3">
         <label for="password" class="form-label">
-          <i class="fas fa-lock text-muted me-1"></i> Password
+          <i class="fas fa-lock text-muted me-1"></i> Mật khẩu
         </label>
         <input type="password" class="form-control" id="password" name="password"
-               placeholder="Enter your password here" autocomplete="current-password" required />
+               placeholder="Nhập mật khẩu của bạn" autocomplete="current-password" required />
       </div>
 
       <div class="d-grid mb-2">
-        <button type="submit" class="btn btn-primary">Login</button>
+        <button type="submit" class="btn btn-primary">Đăng nhập</button>
       </div>
 
       <div class="text-center">
-        <a href="/auth/forgot-password" class="text-decoration-none">Forgot your password?</a>
+        <a href="/auth/forgot-password" class="text-decoration-none">Quên mật khẩu?</a>
       </div>
     </form>
 
@@ -43,14 +43,14 @@
     <!-- Google Login Button -->
     <div class="d-grid mb-3">
       <a href="/auth/google" class="btn btn-outline-danger">
-        <i class="fab fa-google me-2"></i> Sign in with Google
+        <i class="fab fa-google me-2"></i> Đăng nhập với Google
       </a>
     </div>
 
     <!-- Link to Register -->
     <div class="text-center">
-      <span>Don't have an account?</span>
-      <a href="/auth/register" class="text-decoration-none">Sign up</a>
+      <span>Chưa có tài khoản?</span>
+      <a href="/auth/register" class="text-decoration-none">Đăng ký</a>
     </div>
   </div>
 </div>
